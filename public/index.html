@@ -3,54 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joelmo's blog</title>
+    <title>Joelmo's Blog</title>
+    <meta name="description" content="Personal blog with ideas about development, product and the internet.">
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    
-    <header>
-        <div class="logo"><h1>Joelmo's blog</h1></div>
-        <div class="rcc-feed"><button class="btn btn-primary">A</button></div>
+    <header class="site-header">
+        <div class="container topbar">
+            <a class="brand" href="#" aria-label="Go to homepage">Joelmo's Blog</a>
+            <nav class="site-nav" aria-label="Main navigation">
+                RSS feed
+            </nav>
+        </div>
     </header>
 
     <main>
-        <div class="hero recent">
-            <div class="recent-title">
-                <h2>Recent post example title</h2>
+        <section id="featured" class="hero">
+            <div class="container hero-content">
+                <p class="eyebrow">Latest post</p>
+                <h1>Lorem ipsum dolor sit amet consectetur adipiscing elit</h1>
+                <p class="hero-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur lacinia, justo vitae faucibus tempor, dui sem volutpat sapien, non posuere sapien lorem in massa.</p>
+                <div class="hero-meta">
+                    <time datetime="2026-03-28">Mar 28, 2026</time>
+                    <a href="#" class="button">Read article</a>
+                </div>
             </div>
-            <div class="recent-data">
-                <p>2024-06-01</p>
-            </div>
-            <div class="recent-content">
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, voluptate.</p>
-            </div>
-            <div class="recent-btn">
-                <button class="btn btn-link">Read more</button>
-            </div>
-        </div>
+        </section>
 
+        <section id="posts" class="posts">
+            <div class="container">
+                <div class="section-head">
+                    <h2>Latest post</h2>
+                    <a href="#" class="section-link">View all</a>
+                </div>
 
-        <div class="posts">
-            <div class="post-card">
-                <h3>Post example title</h3>
-                <div class="post-type">
-                    <p>2024-06-01</p>
-                </div>
-                <div class="post-desc">
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, voluptate.</p>
-                </div>
-                <div class="link links">
-                    <a href="#" class="link">Read more</a>
+                <div class="post-grid">
+                    <article class="post-card">
+                        <p class="post-date">Mar 24, 2026</p>
+                        <h3>Lorem ipsum dolor sit amet</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer euismod, nunc vitae feugiat dignissim, nisl velit cursus magna, a posuere erat mi ut sem.</p>
+                        <a href="#">Read more</a>
+                    </article>
+
+                    <article class="post-card">
+                        <p class="post-date">Mar 17, 2026</p>
+                        <h3>Consectetur adipiscing elit sed do</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
+                        <a href="#">Read more</a>
+                    </article>
+
+                    <article class="post-card">
+                        <p class="post-date">Mar 10, 2026</p>
+                        <h3>Tempor incididunt ut labore et dolore</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec gravida, magna in luctus luctus, arcu leo volutpat justo, sit amet luctus justo risus id nibh.</p>
+                        <a href="#">Read more</a>
+                    </article>
+
+                    <article class="post-card">
+                        <p class="post-date">Mar 10, 2026</p>
+                        <h3>Tempor incididunt ut labore et dolore</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec gravida, magna in luctus luctus, arcu leo volutpat justo, sit amet luctus justo risus id nibh.</p>
+                        <a href="#">Read more</a>
+                    </article>
+
+                    <article class="post-card">
+                        <p class="post-date">Mar 10, 2026</p>
+                        <h3>Tempor incididunt ut labore et dolore</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec gravida, magna in luctus luctus, arcu leo volutpat justo, sit amet luctus justo risus id nibh.</p>
+                        <a href="#">Read more</a>
+                    </article>
                 </div>
             </div>
-        </div>
+        </section>
     </main>
 
-    <footer>
-        <div class="footer-content">
-            <p><span class="copyright">&copy;</span> 2023 Joelmo's blog. All rights reserved.</p>
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; 2026 Joelmo's Blog. All rights reserved.</p>
         </div>
     </footer>
-
 </body>
 </html>
