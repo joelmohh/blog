@@ -4,7 +4,7 @@ let currentPage = 1;
 
 async function getUpdatedPosts() {
     try {
-        const response = await fetch('https://api.github.com/repos/joelmohh/blog/contents/posts');
+        const response = await fetch('/api/posts');
         const posts = await response.json();
 
         return posts.sort((a, b) => nameToDate(b.name) - nameToDate(a.name));
@@ -55,7 +55,7 @@ function nameToData(name) {
 
 async function getPostData(name) {
     try {
-        const response = await fetch(`https://raw.githubusercontent.com/joelmohh/blog/main/posts/${name}`);
+        const response = await fetch(`/api/posts/${name}`);
         const postData = await response.text();
 
         const [metaPart, contentPart = ""] = postData.split("CONTENT:");
@@ -103,7 +103,7 @@ async function renderPage(page) {
             </figure>
             <h3>${data.TITLE || ''}</h3>
             <p>${data.DESCRIPTION || ''}</p>
-            <a href="${post.html_url}" target="_blank">Read more</a>
+            <a href="/post/${post.name.replace('.md', '')}">Read more</a>
         </article>`;
     }
 
