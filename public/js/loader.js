@@ -1,10 +1,12 @@
+const POSTS_PER_PAGE = 10;
+let allPosts = [];
+let currentPage = 1;
+
 async function getUpdatedPosts() {
     try {
         const response = await fetch('https://api.github.com/repos/joelmohh/blog/contents/posts');
         const posts = await response.json();
 
-        // A API de Contents do GitHub não retorna `updated_at`.
-        // Ordena pelo nome do arquivo, que já codifica a data/hora.
         return posts.sort((a, b) => nameToDate(b.name) - nameToDate(a.name));
     } catch (error) {
         console.error('Error fetching posts:', error);
@@ -12,7 +14,6 @@ async function getUpdatedPosts() {
     }
 }
 
-// Converte o nome do arquivo em um objeto Date para ordenação correta.
 function nameToDate(name) {
     const day = parseInt(name.substring(0, 2), 10);
     const monthStr = name.substring(2, 5);
@@ -30,7 +31,7 @@ function nameToDate(name) {
 }
 
 function nameToData(name) {
-    // Formato esperado: "DDMMMYYYYTTTT.md"
+    // Expected format: "DDMMMYYYYTTTT.md"
     const day = name.substring(0, 2);
     const month = name.substring(2, 5);
     const year = name.substring(5, 9);
@@ -77,31 +78,93 @@ async function getPostData(name) {
     }
 }
 
-async function renderPosts() {
-    const posts = await getUpdatedPosts();
-
+async function renderPage(page) {
     const postContainer = document.querySelector('.post-grid');
-    const latestPostContainer = document.querySelector('.hero');
-
+    const paginationContainer = document.querySelector('.pagination');
     if (!postContainer) return;
 
-    if (!posts.length) {
+    postContainer.innerHTML = '<p class="loading">Loading posts…</p>';
+
+    const gridPosts = allPosts.slice(1);
+    const totalPages = Math.ceil(gridPosts.length / POSTS_PER_PAGE);
+    const start = (page - 1) * POSTS_PER_PAGE;
+    const pagePosts = gridPosts.slice(start, start + POSTS_PER_PAGE);
+
+    let html = '';
+    for (const post of pagePosts) {
+        const data = await getPostData(post.name);
+        if (!data) continue;
+        const time = nameToData(post.name);
+        html += `
+        <article class="post-card">
+            <p class="post-date">Published on ${time.month} ${time.day}, ${time.year} at ${time.time}</p>
+            <figure class="post-thumb">
+                <img src="${data.IMAGE_URL || ''}" alt="Cover image for the post" width="1200" height="680" loading="lazy">
+            </figure>
+            <h3>${data.TITLE || ''}</h3>
+            <p>${data.DESCRIPTION || ''}</p>
+            <a href="${post.html_url}" target="_blank">Read more</a>
+        </article>`;
+    }
+
+    postContainer.innerHTML = html || '<p>No posts available.</p>';
+
+    // Pagination only appear if there are more posts than the per-page limit
+    if (gridPosts.length > POSTS_PER_PAGE) {
+        renderPagination(page, totalPages, paginationContainer);
+    }
+}
+
+function renderPagination(current, total, container) {
+    if (!container) return;
+
+    let html = '';
+
+    html += `<button class="page-btn" data-page="${current - 1}" ${current === 1 ? 'disabled' : ''} aria-label="Previous page">&#8592;</button>`;
+
+    for (let i = 1; i <= total; i++) {
+        if (
+            i === 1 ||
+            i === total ||
+            (i >= current - 1 && i <= current + 1)
+        ) {
+            html += `<button class="page-btn ${i === current ? 'active' : ''}" data-page="${i}" aria-label="Page ${i}" aria-current="${i === current ? 'page' : 'false'}">${i}</button>`;
+        } else if (i === current - 2 || i === current + 2) {
+            html += `<span class="page-ellipsis">…</span>`;
+        }
+    }
+
+    html += `<button class="page-btn" data-page="${current + 1}" ${current === total ? 'disabled' : ''} aria-label="Next page">&#8594;</button>`;
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('.page-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentPage = parseInt(btn.dataset.page);
+            renderPage(currentPage);
+            document.querySelector('#posts').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+}
+
+async function renderPosts() {
+    const postContainer = document.querySelector('.post-grid');
+    const latestPostContainer = document.querySelector('.hero');
+    if (!postContainer) return;
+
+    postContainer.innerHTML = '<p class="loading">Loading posts…</p>';
+
+    allPosts = await getUpdatedPosts();
+
+    if (!allPosts.length) {
         postContainer.innerHTML = '<p>No posts available.</p>';
         return;
     }
 
-    let html = '';
-
-    for (let i = 0; i < posts.length; i++) {
-        const post = posts[i];
-        const isLatest = i === 0;
-
-        const data = await getPostData(post.name);
-        if (!data) continue;
-
-        const time = nameToData(post.name);
-
-        if (isLatest && latestPostContainer) {
+    if (latestPostContainer && allPosts[0]) {
+        const data = await getPostData(allPosts[0].name);
+        const time = nameToData(allPosts[0].name);
+        if (data) {
             latestPostContainer.innerHTML = `
                 <div class="container hero-content">
                     <p class="eyebrow">Latest post</p>
@@ -114,25 +177,11 @@ async function renderPosts() {
                         <time datetime="${time.year}-${time.month}-${time.day}">${time.month} ${time.day}, ${time.year}</time>
                         <a href="#" class="button">Read article</a>
                     </div>
-                </div>
-            `;
-            continue
+                </div>`;
         }
-
-        html += `
-        <article class="post-card">
-            <p class="post-date">Published on ${time.month} ${time.day}, ${time.year} at ${time.time}</p>
-            <figure class="post-thumb">
-                <img src="${data.IMAGE_URL || ''}" alt="Cover image for the post" width="1200" height="680" loading="lazy">
-            </figure>
-            <h3>${data.TITLE || ''}</h3>
-            <p>${data.DESCRIPTION || ''}</p>
-            <a href="${post.html_url}" target="_blank">Read more</a>
-        </article>
-        `;
     }
 
-    postContainer.innerHTML = html;
+    await renderPage(1);
 }
 
 renderPosts();
