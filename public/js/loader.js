@@ -1,4 +1,4 @@
-const POSTS_PER_PAGE = 10;
+const POSTS_PER_PAGE = 5;
 let allPosts = [];
 let currentPage = 1;
 
@@ -128,7 +128,7 @@ function renderPagination(current, total, container) {
             i === total ||
             (i >= current - 1 && i <= current + 1)
         ) {
-            html += `<button class="page-btn ${i === current ? 'active' : ''}" data-page="${i}" aria-label="Page ${i}" aria-current="${i === current ? 'page' : 'false'}">${i}</button>`;
+            html += `<button class="page-btn ${i === current ? 'active' : ''}" ${i === current ? 'disabled' : ''} data-page="${i}" aria-label="Page ${i}" aria-current="${i === current ? 'page' : 'false'}">${i}</button>`;    
         } else if (i === current - 2 || i === current + 2) {
             html += `<span class="page-ellipsis">…</span>`;
         }

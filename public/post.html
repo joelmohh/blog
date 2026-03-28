@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post — Joelmo's Blog</title>
+    <meta name="description" content="">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container topbar">
+            <a class="brand" href="./index.html" aria-label="Go to homepage">Joelmo's Blog</a>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="./feed.xml">RSS feed</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="post-main">
+        <div class="post-loading">
+            <p>Loading post…</p>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; 2026 Joelmo's Blog. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function nameToData(name) {
+            const day = name.substring(0, 2);
+            const month = name.substring(2, 5);
+            const year = name.substring(5, 9);
+            const time = name.substring(9, 13);
+            const timeFormatted = `${time.substring(0, 2)}:${time.substring(2, 4)}`;
+            const months = {
+                JAN: "January", FEB: "February", MAR: "March",    APR: "April",
+                MAY: "May",     JUN: "June",     JUL: "July",     AUG: "August",
+                SEP: "September", OCT: "October", NOV: "November", DEC: "December"
+            };
+            return { month: months[month] || month, day, year, time: timeFormatted };
+        }
+
+        // Markdown mínimo: suporta h2, h3, bold, italic, code, codeblock, blockquote, hr, links, listas
+        function parseMarkdown(md) {
+            return md
+                .replace(/```([\s\S]*?)```/g, (_, code) =>
+                    `<pre><code>${escapeHtml(code.trim())}</code></pre>`)
+                .replace(/`([^`]+)`/g, (_, code) =>
+                    `<code>${escapeHtml(code)}</code>`)
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^> (.+)$/gm, '<blockquote><p>$1</p></blockquote>')
+                .replace(/^---$/gm, '<hr>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul>${s}</ul>`)
+                .replace(/\n\n([^<\n][^\n]*)/g, '\n\n<p>$1</p>')
+                .replace(/^([^<\n][^\n]+)$/gm, '<p>$1</p>');
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        async function loadPost() {
+            const main = document.getElementById('post-main');
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('post'); // ex: ?post=28MAR20261430
+
+            if (!slug) {
+                showError(main, 'Post not found', 'No post specified in the URL.');
+                return;
+            }
+
+            const filename = slug.endsWith('.md') ? slug : `${slug}.md`;
+
+            try {
+                const res = await fetch(`https://raw.githubusercontent.com/joelmohh/blog/main/posts/${filename}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const raw = await res.text();
+                const [metaPart, contentPart = ''] = raw.split('CONTENT:');
+                const data = {};
+
+                metaPart.split('\n').forEach(line => {
+                    const [key, ...rest] = line.split(':');
+                    if (!key || !rest.length) return;
+                    data[key.trim()] = rest.join(':').trim();
+                });
+
+                data.CONTENT = contentPart.trim();
+
+                const time = nameToData(slug);
+                const datetime = `${time.year}-${String(time.day).padStart(2,'0')}-${time.month}`;
+
+                document.title = `${data.TITLE || slug} — Joelmo's Blog`;
+                if (data.DESCRIPTION) {
+                    document.querySelector('meta[name="description"]').setAttribute('content', data.DESCRIPTION);
+                }
+
+                main.innerHTML = `
+                    <section class="post-hero">
+                        <div class="container">
+                            <a class="back-link" href="./index.html">All posts</a>
+                            <div class="post-meta-row">
+                                <p class="eyebrow" style="margin:0">${data.CATEGORY || 'Post'}</p>
+                                <span class="dot">·</span>
+                                <time datetime="${datetime}">${time.month} ${time.day}, ${time.year} at ${time.time}</time>
+                            </div>
+                            <h1 class="post-title">${data.TITLE || slug}</h1>
+                            ${data.DESCRIPTION ? `<p class="post-description">${data.DESCRIPTION}</p>` : ''}
+                            ${data.IMAGE_URL ? `
+                            <figure class="post-cover">
+                                <img src="${data.IMAGE_URL}" alt="${data.TITLE || 'Post cover'}" width="1200" height="525" decoding="async">
+                            </figure>` : ''}
+                        </div>
+                    </section>
+
+                    <section class="post-body">
+                        <div class="container">
+                            <div class="post-content">
+                                ${data.CONTENT ? parseMarkdown(data.CONTENT) : '<p><em>No content available.</em></p>'}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            } catch (err) {
+                showError(main, '404', `Could not load post <code>${filename}</code>.`);
+            }
+        }
+
+        function showError(container, title, message) {
+            container.innerHTML = `
+                <div class="post-error container">
+                    <strong>${title}</strong>
+                    <p>${message}</p>
+                    <a class="back-link" href="./index.html" style="margin-top:16px;display:inline-flex">Back to home</a>
+                </div>
+            `;
+        }
+
+        loadPost();
+    </script>
+</body>
+</html>
