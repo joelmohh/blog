@@ -69,6 +69,15 @@ async function getPostData(name) {
 
 async function renderPosts() {
     const posts = await getUpdatedPosts();
+
+    if(!posts.length) {
+        const postContainer = document.querySelector('.post-grid');
+        if (postContainer) {
+            postContainer.innerHTML = '<p>No posts available.</p>';
+        }
+        return;
+    }
+
     const postContainer = document.querySelector('.post-grid');
 
     if (!postContainer) return;
