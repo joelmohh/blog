@@ -437,13 +437,13 @@ a {
     object-fit: cover;
 }
 
-/* ── Article body ── */
+
 .post-body {
-    padding: 52px 0 80px;
+    padding: 0px 0 0px;
 }
 
 .post-content {
-    max-width: 68ch;
+    max-width: auto;
     margin: 0 auto;
     font-size: 1.05rem;
     line-height: 1.85;
