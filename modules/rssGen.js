@@ -70,5 +70,5 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
     </channel>
 </rss>`;
 
-fs.writeFileSync(path.join(__dirname, '../feed.xml'), xml);
+fs.writeFileSync(path.join(__dirname, '../public/feed.xml'), xml);
 console.log(`RSS generated with ${files.length} posts.`);

@@ -274,6 +274,9 @@ a {
 .site-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(2, 25, 43, 0.72);
+
+    position: relative;
+    bottom: 0;
 }
 
 .footer-content {
@@ -562,3 +565,57 @@ a {
         padding: 36px 0 60px;
     }
 }
+
+/*
+    Login Page Styles
+*/
+.login-container {
+    max-width: 400px;
+    margin: 80px auto 10px;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 32px;
+    box-shadow: var(--shadow);
+}
+.login-container h2 {
+    margin: 0 0 24px;
+    font-size: 1.8rem;
+    text-align: center;
+}
+.login-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.login-container label {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+.login-container input {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);                   
+    background-color: transparent;
+    color: var(--text);
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+.login-container input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+.login-container button {
+    padding: 12px 0;
+    background-color: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.login-container button:hover {
+    background-color: var(--accent-dark);
+} 

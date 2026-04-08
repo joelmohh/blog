@@ -1,5 +1,8 @@
 const express = require('express');
 require('dotenv').config();
+const session = require('express-session');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 const USERNAME = process.env.USERNAME;
 const PASSWORD = process.env.PASSWORD;
@@ -10,12 +13,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static('public'));
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
+app.use(cookieParser());
+
+const Auth = require('./modules/Auth'); 
+
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 app.get('/post/:name', (req, res) => {
     res.sendFile(__dirname + '/public/post.html');
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(__dirname + '/public/login.html');
+});
+app.get('/admin', Auth, (req, res) => {
+
+    res.sendFile(__dirname + '/public/admin.html');
+
 });
 
 
@@ -49,6 +71,17 @@ app.get('/api/posts/:name', (req, res) => {
             console.error(`Error fetching post ${name}:`, error);
             res.status(500).json({ error: 'Failed to fetch post' });
         });
+});
+
+app.post('/api/login', express.json(), (req, res) => {
+    const { username, password } = req.body;
+
+    if (username === USERNAME && password === PASSWORD) {
+        res.cookie('token', jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1d' }), { httpOnly: true, sameSite: 'Strict' });
+        res.json({ success: true})
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
 });
 
 app.listen(PORT, () => {
