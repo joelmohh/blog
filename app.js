@@ -21,7 +21,7 @@ app.use(session({
 }));
 app.use(cookieParser());
 
-const Auth = require('./modules/Auth'); 
+const Auth = require('./modules/Auth');
 
 
 app.get('/', (req, res) => {
@@ -42,6 +42,7 @@ app.get('/admin', Auth, (req, res) => {
 
 
 // API Routes
+app.use('/feed.xml', require('./modules/rssGen')); 
 
 app.get('/api/posts', (req, res) => {
     fetch(`https://api.github.com/repos/${G_USERNAME}/blog/contents/posts`)

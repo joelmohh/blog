@@ -1,4 +1,4 @@
-const POSTS_PER_PAGE = 5;
+const POSTS_PER_PAGE = 6;
 let allPosts = [];
 let currentPage = 1;
 
@@ -98,9 +98,6 @@ async function renderPage(page) {
         html += `
         <article class="post-card">
             <p class="post-date">Published on ${time.month} ${time.day}, ${time.year} at ${time.time}</p>
-            <figure class="post-thumb">
-                <img src="${data.IMAGE_URL || ''}" alt="Cover image for the post" width="1200" height="680" loading="lazy">
-            </figure>
             <h3>${data.TITLE || ''}</h3>
             <p>${data.DESCRIPTION || ''}</p>
             <a href="/post/${post.name.replace('.md', '')}">Read more</a>
@@ -109,7 +106,6 @@ async function renderPage(page) {
 
     postContainer.innerHTML = html || '<p>No posts available.</p>';
 
-    // Pagination only appear if there are more posts than the per-page limit
     if (gridPosts.length > POSTS_PER_PAGE) {
         renderPagination(page, totalPages, paginationContainer);
     }
@@ -170,12 +166,9 @@ async function renderPosts() {
                     <p class="eyebrow">Latest post</p>
                     <h1>${data.TITLE || ''}</h1>
                     <p class="hero-text">${data.DESCRIPTION || ''}</p>
-                    <figure class="hero-visual">
-                        <img src="${data.IMAGE_URL || './images/hero-visual.svg'}" alt="${data.TITLE || 'Featured post'}" width="1200" height="680" decoding="async">
-                    </figure>
                     <div class="hero-meta">
                         <time datetime="${time.year}-${time.month}-${time.day}">${time.month} ${time.day}, ${time.year}</time>
-                        <a href="#" class="button">Read article</a>
+                        <a href="/post/${allPosts[0].name.replace('.md', '')}" class="button">Read article</a>
                     </div>
                 </div>`;
         }
