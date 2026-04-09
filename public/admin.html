@@ -1,47 +1,51 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post — Joelmo's Blog</title>
-    <meta name="description" content="">
+    <title>Dashboard — Joelmo's Blog</title>
+    <meta name="description" content="Admin dashboard for Joelmo's Blog.">
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
-<body>
+<body class="admin-page">
     <header class="site-header">
         <div class="container topbar">
             <a class="brand" href="/" aria-label="Go to homepage">Joelmo's Blog</a>
-            <nav class="site-nav" aria-label="Main navigation">
-                <a href="/">Home</a>
-            </nav>
+            <a class="admin-link" href="/login">Logout</a>
         </div>
     </header>
 
-    <div class="login-container">
-        <h2>Admin Login</h2>
-        <form id="login-form">
-            <div>
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+    <main class="admin-main">
+        <section class="admin-posts container">
+            <div class="admin-head">
+                <div>
+                    <p class="eyebrow">Posts</p>
+                    <h1>All posts</h1>
+                </div>
+                <a class="create-post-btn" href="#">Create post</a>
             </div>
-            <div>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+
+            <div class="post-list">
+                <a class="post-row" href="/admin/edit-post/${name}">
+                    <span class="post-row-title">Title <br><span class="post-row-meta">Description</span></span>
+                    <span class="post-row-meta">Creation date</span>
+                </a>
             </div>
-            <button type="submit">Login</button>
-        </form>
-    </div>
 
+            <div class="pagination admin-pagination" aria-label="Pagination">
+                <button class="page-btn active" type="button">1</button>
+                <button class="page-btn" type="button">2</button>
+                <button class="page-btn" type="button">3</button>
+                <span class="page-ellipsis">...</span>
+                <button class="page-btn" type="button">Next</button>
+            </div>
+        </section>
+    </main>
 
-    <footer class="site-footer">
-        <div class="container footer-content">
-            <p>&copy; 2026 Joelmo's Blog. All rights reserved.</p>
-        </div>
-    </footer>
-    <script src="/js/login.js"></script>
-
+    <script src="./js/admin.js"></script>
 </body>
 
 </html>

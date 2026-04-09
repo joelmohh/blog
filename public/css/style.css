@@ -37,6 +37,13 @@ body {
     color: var(--text);
     background-color: var(--bg-color);
     line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
 }
 
 a {
@@ -277,9 +284,7 @@ a {
 .site-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(2, 25, 43, 0.72);
-
-    position: relative;
-    bottom: 0;
+    margin-top: auto;
 }
 
 .footer-content {
@@ -559,22 +564,133 @@ a {
     color: var(--text);
 }
 
+/* Dashboard */
+.admin-page {
+    background:
+        linear-gradient(180deg, rgba(0, 21, 36, 0.98), rgba(0, 21, 36, 0.92));
+}
+
+.admin-main {
+    padding: 36px 0 48px;
+}
+
+.admin-posts {
+    display: grid;
+    gap: 18px;
+}
+
+.admin-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 0 0;
+}
+
+.admin-head h1 {
+    margin: 6px 0 0;
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+    line-height: 1.1;
+}
+
+.create-post-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: var(--radius-sm);
+    background-color: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+
+.create-post-btn:hover,
+.create-post-btn:focus-visible {
+    background-color: var(--accent-dark);
+}
+
+.post-list {
+    display: grid;
+    gap: 10px;
+}
+
+.post-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    text-decoration: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.post-row:hover,
+.post-row:focus-visible {
+    border-color: var(--accent);
+    background-color: var(--surface-strong);
+}
+
+.post-row-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+}
+
+.post-row-meta {
+    color: var(--muted);
+    font-size: 0.84rem;
+    flex: 0 0 auto;
+}
+
+.admin-pagination {
+    margin-top: 4px;
+    justify-content: flex-start;
+}
+
+.admin-link {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
 @media (max-width: 640px) {
-    .post-hero {
-        padding-top: 40px;
+    .admin-main {
+        padding-top: 24px;
     }
 
-    .post-body {
-        padding: 36px 0 60px;
+    .admin-head,
+    .post-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-link {
+        font-size: 0.82rem;
     }
 }
 
 /*
     Login Page Styles
 */
+.auth-page {
+    background:
+        linear-gradient(180deg, rgba(0, 21, 36, 0.98), rgba(0, 21, 36, 0.92));
+}
+
+.auth-main {
+    display: grid;
+    place-items: center;
+    padding: 32px 0 40px;
+}
+
 .login-container {
-    max-width: 400px;
-    margin: 80px auto 10px;
+    width: min(100%, 460px);
+    margin: 0 auto;
     background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -586,10 +702,22 @@ a {
     font-size: 1.8rem;
     text-align: center;
 }
-.login-container form {
+.login-container h1 {
+    margin: 8px 0 10px;
+    font-size: clamp(1.6rem, 3.6vw, 2.1rem);
+    line-height: 1.15;
+}
+.login-intro {
+    margin: 0 0 24px;
+}
+.login-form {
     display: flex;
     flex-direction: column;
     gap: 18px;
+}
+.field-group {
+    display: grid;
+    gap: 8px;
 }
 .login-container label {
     font-size: 0.9rem;
@@ -622,3 +750,7 @@ a {
 .login-container button:hover {
     background-color: var(--accent-dark);
 } 
+
+.auth-footer .footer-content {
+    min-height: 58px;
+}
