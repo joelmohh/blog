@@ -1,104 +1,161 @@
 function nameToData(name) {
-    const day = name.substring(0, 2);
-    const month = name.substring(2, 5);
-    const year = name.substring(5, 9);
-    const time = name.substring(9, 13);
+    const cleanName = name.replace('.md', '');
+    const day = cleanName.substring(0, 2);
+    const month = cleanName.substring(2, 5);
+    const year = cleanName.substring(5, 9);
+    const time = cleanName.substring(9, 13);
     const timeFormatted = `${time.substring(0, 2)}:${time.substring(2, 4)}`;
     const months = {
-        JAN: "January", FEB: "February", MAR: "March", APR: "April",
-        MAY: "May", JUN: "June", JUL: "July", AUG: "August",
-        SEP: "September", OCT: "October", NOV: "November", DEC: "December"
+        JAN: 'January', FEB: 'February', MAR: 'March', APR: 'April',
+        MAY: 'May', JUN: 'June', JUL: 'July', AUG: 'August',
+        SEP: 'September', OCT: 'October', NOV: 'November', DEC: 'December'
     };
+
     return { month: months[month] || month, day, year, time: timeFormatted };
 }
 
-function parseMarkdown(md) {
-    const lines = md.split('\n');
-    const out = [];
-    let inUl = false;
-    let inOl = false;
-    let inPre = false;
-    let preBuffer = [];
-
-    const inline = str => str
-        .replace(/```([^`]+)```/g, (_, c) => `<code>${escapeHtml(c)}</code>`)
-        .replace(/`([^`]+)`/g, (_, c) => `<code>${escapeHtml(c)}</code>`)
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-    const closeUl = () => { if (inUl) { out.push('</ul>'); inUl = false; } };
-    const closeOl = () => { if (inOl) { out.push('</ol>'); inOl = false; } };
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        // Code block
-        if (line.startsWith('```')) {
-            if (!inPre) {
-                inPre = true;
-                preBuffer = [];
-            } else {
-                out.push(`<pre><code>${escapeHtml(preBuffer.join('\n'))}</code></pre>`);
-                inPre = false;
-                preBuffer = [];
-            }
-            continue;
-        }
-
-        if (inPre) {
-            preBuffer.push(line);
-            continue;
-        }
-
-        if (/^- (.+)/.test(line)) {
-            closeOl();
-            if (!inUl) { out.push('<ul>'); inUl = true; }
-            out.push(`<li>${inline(line.replace(/^- /, ''))}</li>`);
-            continue;
-        }
-
-        if (/^\d+\. (.+)/.test(line)) {
-            closeUl();
-            if (!inOl) { out.push('<ol>'); inOl = true; }
-            out.push(`<li>${inline(line.replace(/^\d+\. /, ''))}</li>`);
-            continue;
-        }
-
-        closeUl();
-        closeOl();
-
-        if (/^## (.+)/.test(line)) {
-            out.push(`<h2>${inline(line.replace(/^## /, ''))}</h2>`);
-        } else if (/^### (.+)/.test(line)) {
-            out.push(`<h3>${inline(line.replace(/^### /, ''))}</h3>`);
-        } else if (/^> (.+)/.test(line)) {
-            out.push(`<blockquote><p>${inline(line.replace(/^> /, ''))}</p></blockquote>`);
-        } else if (line.trim() === '---') {
-            out.push('<hr>');
-        } else if (line.trim() === '') {
-            out.push('');
-        } else {
-            out.push(`<p>${inline(line)}</p>`);
-        }
-    }
-
-    closeUl();
-    closeOl();
-
-    return out.join('\n');
-}
-
 function escapeHtml(str) {
-    return str
+    return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function sanitizeUrl(url) {
+    if (!url) return null;
+    const trimmed = String(url).trim();
+    if (!trimmed) return null;
+
+    if (/^(https?:|mailto:|\/|#)/i.test(trimmed) || /^[.]{1,2}\//.test(trimmed)) {
+        return trimmed;
+    }
+
+    return null;
+}
+
+function parsePostFile(raw) {
+    const [metaPart, contentPart = ''] = raw.split('CONTENT:');
+    const data = { CONTENT: contentPart.trim() };
+
+    metaPart.split('\n').forEach(line => {
+        const [key, ...rest] = line.split(':');
+        if (!key || !rest.length) return;
+        data[key.trim()] = rest.join(':').trim();
+    });
+
+    return data;
+}
+
+function markdownToHtml(markdown) {
+    const markedLib = window.marked;
+
+    if (!markedLib) {
+        return `<p>${escapeHtml(markdown || '').replace(/\n/g, '<br>')}</p>`;
+    }
+
+    const renderer = new markedLib.Renderer();
+
+    renderer.link = ({ href, title, tokens }) => {
+        const safeHref = sanitizeUrl(href);
+        const label = markedLib.Parser.parseInline(tokens || []);
+
+        if (!safeHref) return label;
+
+        const external = /^https?:/i.test(safeHref);
+        const rel = external ? 'noopener noreferrer' : 'noopener';
+        const target = external ? ' target="_blank"' : '';
+        const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+
+        return `<a href="${escapeHtml(safeHref)}" rel="${rel}"${target}${titleAttr}>${label}</a>`;
+    };
+
+    renderer.image = ({ href, title, text }) => {
+        const safeSrc = sanitizeUrl(href);
+        if (!safeSrc) return '';
+
+        const alt = escapeHtml(text || '');
+        const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+        return `<img src="${escapeHtml(safeSrc)}" alt="${alt}" loading="lazy" decoding="async"${titleAttr}>`;
+    };
+
+    markedLib.setOptions({
+        gfm: true,
+        breaks: true,
+        headerIds: false,
+        mangle: false,
+        renderer
+    });
+
+    const rawHtml = markedLib.parse(markdown || '');
+    if (!window.DOMPurify) return rawHtml;
+
+    return window.DOMPurify.sanitize(rawHtml, {
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
+        FORBID_ATTR: ['onerror', 'onclick', 'onload', 'style']
+    });
+}
+
+function renderPost(main, slug, data) {
+    const time = nameToData(slug);
+    const safeTitle = escapeHtml(data.TITLE || slug);
+    const safeCategory = escapeHtml(data.CATEGORY || 'Post');
+    const safeDescription = escapeHtml(data.DESCRIPTION || '');
+    const safeImageUrl = sanitizeUrl(data.IMAGE_URL);
+    const safeImageAlt = escapeHtml(data.TITLE || 'Post cover');
+
+    document.title = `${data.TITLE || slug} - Joelmo's Blog`;
+    const descriptionMeta = document.querySelector('meta[name="description"]');
+    if (descriptionMeta && data.DESCRIPTION) {
+        descriptionMeta.setAttribute('content', safeDescription);
+    }
+
+    const markdownHtml = data.CONTENT
+        ? markdownToHtml(data.CONTENT)
+        : '<p><em>No content available.</em></p>';
+
+    main.innerHTML = `
+        <section class="post-hero">
+            <div class="container">
+                <a class="back-link" href="/">All posts</a>
+                <div class="post-meta-row">
+                    <p class="eyebrow" style="margin:0">${safeCategory}</p>
+                    <span class="dot">·</span>
+                    <time>${time.month} ${time.day}, ${time.year} at ${time.time}</time>
+                </div>
+                <h1 class="post-title">${safeTitle}</h1>
+                ${safeDescription ? `<p class="post-description">${safeDescription}</p>` : ''}
+                ${safeImageUrl ? `
+                <figure class="post-cover">
+                    <img src="${escapeHtml(safeImageUrl)}" alt="${safeImageAlt}" width="1200" height="525" decoding="async">
+                </figure>` : ''}
+            </div>
+        </section>
+
+        <section class="post-body">
+            <div class="container">
+                <article class="post-content markdown-body">
+                    ${markdownHtml}
+                </article>
+            </div>
+        </section>
+    `;
+}
+
+function showError(container, title, message) {
+    container.innerHTML = `
+        <div class="post-error container">
+            <strong>${escapeHtml(title)}</strong>
+            <p>${message}</p>
+            <a class="back-link" href="./index.html" style="margin-top:16px;display:inline-flex">Back to home</a>
+        </div>
+    `;
 }
 
 async function loadPost() {
     const main = document.getElementById('post-main');
-    const slug = window.location.pathname.split('/post/')[1]
+    const slug = window.location.pathname.split('/post/')[1];
 
     if (!slug) {
         showError(main, 'Post not found', 'No post specified in the URL.');
@@ -112,64 +169,11 @@ async function loadPost() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const raw = await res.text();
-        const [metaPart, contentPart = ''] = raw.split('CONTENT:');
-        const data = {};
-
-        metaPart.split('\n').forEach(line => {
-            const [key, ...rest] = line.split(':');
-            if (!key || !rest.length) return;
-            data[key.trim()] = rest.join(':').trim();
-        });
-
-        data.CONTENT = contentPart.trim();
-
-        const time = nameToData(slug);
-        const datetime = `${time.year}-${String(time.day).padStart(2, '0')}-${time.month}`;
-
-        document.title = `${data.TITLE || slug} — Joelmo's Blog`;
-        if (data.DESCRIPTION) {
-            document.querySelector('meta[name="description"]').setAttribute('content', data.DESCRIPTION);
-        }
-
-        main.innerHTML = `
-                    <section class="post-hero">
-                        <div class="container">
-                            <a class="back-link" href="/">All posts</a>
-                            <div class="post-meta-row">
-                                <p class="eyebrow" style="margin:0">${data.CATEGORY || 'Post'}</p>
-                                <span class="dot">·</span>
-                                <time datetime="${datetime}">${time.month} ${time.day}, ${time.year} at ${time.time}</time>
-                            </div>
-                            <h1 class="post-title">${data.TITLE || slug}</h1>
-                            ${data.DESCRIPTION ? `<p class="post-description">${data.DESCRIPTION}</p>` : ''}
-                            ${data.IMAGE_URL ? `
-                            <figure class="post-cover">
-                                <img src="${data.IMAGE_URL}" alt="${data.TITLE || 'Post cover'}" width="1200" height="525" decoding="async">
-                            </figure>` : ''}
-                        </div>
-                    </section>
-
-                    <section class="post-body">
-                        <div class="container">
-                            <div class="post-content">
-                                ${data.CONTENT ? parseMarkdown(data.CONTENT) : '<p><em>No content available.</em></p>'}
-                            </div>
-                        </div>
-                    </section>
-                `;
+        const data = parsePostFile(raw);
+        renderPost(main, slug, data);
     } catch (err) {
-        showError(main, '404', `Could not load post <code>${filename}</code>.`);
+        showError(main, '404', `Could not load post <code>${escapeHtml(filename)}</code>.`);
     }
-}
-
-function showError(container, title, message) {
-    container.innerHTML = `
-                <div class="post-error container">
-                    <strong>${title}</strong>
-                    <p>${message}</p>
-                    <a class="back-link" href="./index.html" style="margin-top:16px;display:inline-flex">Back to home</a>
-                </div>
-            `;
 }
 
 loadPost();

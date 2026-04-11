@@ -8,6 +8,7 @@ const USERNAME = process.env.USERNAME;
 const PASSWORD = process.env.PASSWORD;
 
 const G_USERNAME = process.env.G_USERNAME;
+const G_REPONAME = process.env.G_REPONAME;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,7 +46,7 @@ app.get('/admin', Auth, (req, res) => {
 app.use('/feed.xml', require('./modules/rssGen')); 
 
 app.get('/api/posts', (req, res) => {
-    fetch(`https://api.github.com/repos/${G_USERNAME}/blog/contents/posts`)
+    fetch(`https://api.github.com/repos/${G_USERNAME}/${G_REPONAME}/contents/posts`)
         .then(response => response.json())
         .then(data => {
             res.json(data);
@@ -58,7 +59,7 @@ app.get('/api/posts', (req, res) => {
 app.get('/api/posts/:name', (req, res) => {
     const { name } = req.params;
 
-    fetch(`https://raw.githubusercontent.com/${G_USERNAME}/blog/main/posts/${name}`)
+    fetch(`https://raw.githubusercontent.com/${G_USERNAME}/${G_REPONAME}/main/posts/${name}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
